@@ -17,6 +17,9 @@
       const [isAuth, setIsAuth] = React.useState(false);
       const [key, setKey] = React.useState('');
       const [userRole, setUserRole] = React.useState('');
+      const [activeTab, setActiveTab] = React.useState('roster');
+      const [searchQuery, setSearchQuery] = React.useState('');
+      const [segmentFilter, setSegmentFilter] = React.useState('All');
 
       const validKeys = {
         'BISC-EXEC-2027': 'Master General Secretary',
@@ -24,6 +27,42 @@
         'FACULTY-2027': 'Faculty Advisor',
         'JUDGE-2027': 'Judge Panel'
       };
+
+      const [delegates, setDelegates] = React.useState([
+        { id: 1, team: 'Alpha Capital', lead: 'Tanvir Ahmed', school: 'BISC Mohakhali', segment: 'Shark Tank', mode: 'Team', trx: 'TRX98711', paid: true },
+        { id: 2, team: 'Apex Strategy', lead: 'Nabila Islam', school: 'Scholastica', segment: 'BISC Fiscal Frontier', mode: 'Team', trx: 'TRX98722', paid: true },
+        { id: 3, team: 'N/A', lead: 'Zayan Chowdhury', school: 'Mastermind', segment: 'Venture Capital Pitch', mode: 'Solo', trx: 'TRX98733', paid: false },
+        { id: 4, team: 'EcoVentures', lead: 'Saima Khan', school: 'BISC Mohakhali', segment: 'Corporate Strategy Case Crack', mode: 'Team', trx: 'TRX98744', paid: true },
+        { id: 5, team: 'Matrix Economics', lead: 'Ayman Hasan', school: 'Sunbeams', segment: 'BISC Fiscal Frontier', mode: 'Team', trx: 'TRX98755', paid: false }
+      ]);
+
+      const [tasks, setTasks] = React.useState([
+        { id: 1, text: 'Confirm Hotel Ballroom Catering Contract', day: 'Day 3', done: true },
+        { id: 2, text: 'Print Delegate ID Badges & Lanyards', day: 'Day 1', done: false },
+        { id: 3, text: 'Brief Segment Judges on Scoring Rubrics', day: 'Day 2', done: true },
+        { id: 4, text: 'Test Stage Audio & Projector Setup', day: 'Day 3', done: false }
+      ]);
+
+      const [timer, setTimer] = React.useState(180);
+      const [timerRunning, setTimerRunning] = React.useState(false);
+      const [currentCrisis, setCurrentCrisis] = React.useState(null);
+
+      const crisisList = [
+        "Fuel Subsidy Shock: Global crude prices spike by 40%. Readjust national budget allocations within 90 seconds.",
+        "Hyperinflation Spike: Local currency devalues by 25% overnight. Address foreign debt servicing.",
+        "Supply Chain Disruption: Key port strikes freeze exports for 3 weeks. Re-route logistics infrastructure.",
+        "Banking Liquidity Crisis: Central bank raises interest rates to 15%. Formulate small-business relief package."
+      ];
+
+      React.useEffect(() => {
+        let interval = null;
+        if (timerRunning && timer > 0) {
+          interval = setInterval(() => setTimer(t => t - 1), 1000);
+        } else if (timer === 0) {
+          setTimerRunning(false);
+        }
+        return () => clearInterval(interval);
+      }, [timerRunning, timer]);
 
       const handleLogin = (e) => {
         e.preventDefault();
@@ -34,6 +73,30 @@
         } else {
           alert('Invalid Security Passkey');
         }
+      };
+
+      const togglePayment = (id) => {
+        setDelegates(delegates.map(d => d.id === id ? { ...d, paid: !d.paid } : d));
+      };
+
+      const toggleTask = (id) => {
+        setTasks(tasks.map(t => t.id === id ? { ...t, done: !t.done } : t));
+      };
+
+      const exportCSV = () => {
+        const headers = "ID,Team Name,Lead Delegate,Institution,Segment,Mode,TRX ID,Payment Status\n";
+        const rows = delegates.map(d => `${d.id},"${d.team}","${d.lead}","${d.school}","${d.segment}",${d.mode},${d.trx},${d.paid ? 'Paid' : 'Pending'}`).join("\n");
+        const blob = new Blob([headers + rows], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'EcoBiz_Delegates_Roster.csv';
+        a.click();
+      };
+
+      const generateCrisis = () => {
+        const random = crisisList[Math.floor(Math.random() * crisisList.length)];
+        setCurrentCrisis(random);
       };
 
       if (!isAuth) {
@@ -57,32 +120,49 @@
                   Authenticate Workspace
                 </button>
               </form>
+              <div className="text-left text-xs text-slate-500 bg-[#090D16] p-3 rounded-lg border border-slate-800 space-y-1">
+                <p className="font-semibold text-slate-400">Pre-authorized Passkeys:</p>
+                <p>• General Secretary: <code className="text-[#00F0FF]">BISC-EXEC-2027</code></p>
+                <p>• Executive Board: <code className="text-[#00F0FF]">ECOBIZ2027</code></p>
+              </div>
             </div>
           </div>
         );
       }
 
+      const filteredDelegates = delegates.filter(d => {
+        const matchesSearch = d.lead.toLowerCase().includes(searchQuery.toLowerCase()) || d.team.toLowerCase().includes(searchQuery.toLowerCase()) || d.school.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesSegment = segmentFilter === 'All' || d.segment === segmentFilter;
+        return matchesSearch && matchesSegment;
+      });
+
       return (
-        <div className="p-8 max-w-6xl mx-auto space-y-6">
-          <div className="flex justify-between items-center border-b border-slate-800 pb-4">
+        <div className="min-h-screen p-4 md:p-8 max-w-7xl mx-auto space-y-6">
+          <header className="flex flex-col md:flex-row justify-between items-start md:items-center bg-[#111827] border border-slate-800 p-6 rounded-2xl gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-[#00F0FF]">BISC EcoBiz Summit I — Executive Dashboard</h1>
-              <p className="text-slate-400 text-sm">Role: {userRole} | Target: 150 Delegates</p>
+              <div className="flex items-center space-x-3">
+                <h1 className="text-2xl font-extrabold text-[#00F0FF]">BISC EcoBiz Command Center</h1>
+                <span className="bg-[#00F0FF]/10 text-[#00F0FF] text-xs font-semibold px-2.5 py-0.5 rounded-full">{userRole}</span>
+              </div>
+              <p className="text-slate-400 text-xs mt-1">BISC EcoBiz Summit I — Target: 150 Delegates | Budget: BDT 1,229,000</p>
             </div>
-            <button onClick={() => setIsAuth(false)} className="px-4 py-2 border border-red-500/50 text-red-400 rounded-lg hover:bg-red-500/10">
+            <button onClick={() => setIsAuth(false)} className="px-4 py-2 border border-red-500/40 text-red-400 hover:bg-red-500/10 text-xs font-semibold rounded-lg transition">
               Lock Session
             </button>
-          </div>
-          <div className="bg-[#111827] border border-slate-800 p-6 rounded-xl">
-            <h2 className="text-xl font-semibold text-white">System Active</h2>
-            <p className="text-slate-300 text-sm mt-1">Command Center authenticated and connected.</p>
-          </div>
-        </div>
-      );
-    }
+          </header>
 
-    const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(<CommandCenter />);
-  </script>
-</body>
-</html>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-[#111827] border border-slate-800 p-4 rounded-xl">
+              <p className="text-slate-400 text-xs font-semibold uppercase">Total Delegates</p>
+              <p className="text-2xl font-bold text-white mt-1">{delegates.length} <span className="text-xs font-normal text-slate-500">/ 150 Target</span></p>
+            </div>
+            <div className="bg-[#111827] border border-slate-800 p-4 rounded-xl">
+              <p className="text-slate-400 text-xs font-semibold uppercase">Verified Payments</p>
+              <p className="text-2xl font-bold text-[#00F0FF] mt-1">{delegates.filter(d => d.paid).length}</p>
+            </div>
+            <div className="bg-[#111827] border border-slate-800 p-4 rounded-xl">
+              <p className="text-slate-400 text-xs font-semibold uppercase">Pending Verification</p>
+              <p className="text-2xl font-bold text-yellow-400 mt-1">{delegates.filter(d => !d.paid).length}</p>
+            </div>
+            <div className="bg-[#111827] border border-slate-800 p-4 rounded-xl">
+              <p className="text-slate-400 text-xs font-
