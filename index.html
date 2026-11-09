@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BISC EcoBiz Summit I — Command Center</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body class="bg-[#090D16] text-white">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    function App() {
+      const [key, setKey] = React.useState('');
+      const [isAuth, setIsAuth] = React.useState(false);
+
+      const handleLogin = (e) => {
+        e.preventDefault();
+        if (key === 'ECOBIZ2027' || key === 'BISC-EXEC-2027') {
+          setIsAuth(true);
+        } else {
+          alert('Invalid Security Passkey');
+        }
+      };
+
+      if (!isAuth) {
+        return (
+          <div class="min-h-screen flex items-center justify-center p-4">
+            <div class="bg-[#111827] border border-[#00F0FF]/30 p-8 rounded-2xl max-w-md w-full text-center shadow-2xl">
+              <h1 class="text-2xl font-bold text-[#00F0FF] mb-2">BISC EcoBiz Command Center</h1>
+              <p class="text-slate-400 text-sm mb-6">Restricted Invite-Only Access Gate</p>
+              <form onSubmit={handleLogin} class="space-y-4">
+                <input 
+                  type="password" 
+                  placeholder="Enter Security Passkey" 
+                  value={key} 
+                  onChange={(e) => setKey(e.target.value)}
+                  class="w-full bg-[#090D16] border border-slate-700 rounded-lg px-4 py-3 text-center text-white focus:outline-none focus:border-[#00F0FF]"
+                />
+                <button type="submit" class="w-full bg-[#00F0FF] text-black font-semibold py-3 rounded-lg hover:bg-cyan-400 transition">
+                  Unlock Workspace
+                </button>
+              </form>
+            </div>
+          </div>
+        );
+      }
+
+      return (
+        <div class="p-8 max-w-6xl mx-auto space-y-6">
+          <div class="flex justify-between items-center border-b border-slate-800 pb-4">
+            <div>
+              <h1 class="text-3xl font-bold text-[#00F0FF]">BISC EcoBiz Summit I — Executive Dashboard</h1>
+              <p class="text-slate-400 text-sm">Target: 150 Delegates | Budget: BDT 1.2M+</p>
+            </div>
+            <button onClick={() => setIsAuth(false)} class="px-4 py-2 border border-red-500/50 text-red-400 rounded-lg hover:bg-red-500/10">
+              Lock Session
+            </button>
+          </div>
+          <div class="bg-[#111827] border border-slate-800 p-6 rounded-xl">
+            <h2 class="text-xl font-semibold mb-2">Organizer Live Status</h2>
+            <p class="text-slate-300">Command Center connected and secure.</p>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
