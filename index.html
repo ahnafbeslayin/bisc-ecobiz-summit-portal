@@ -3,72 +3,173 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BISC EcoBiz Summit I — Command Center</title>
+  <title>BISC EcoBiz Summit I — Delegate Registration</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
-<body class="bg-[#090D16] text-white">
+<body class="bg-[#090D16] text-white min-h-screen">
   <div id="root"></div>
 
   <script type="text/babel">
-    function App() {
-      const [key, setKey] = React.useState('');
-      const [isAuth, setIsAuth] = React.useState(false);
+    function RegistrationPortal() {
+      const [mode, setMode] = React.useState('team');
+      const [submitted, setSubmitted] = React.useState(false);
+      const [loading, setLoading] = React.useState(false);
+      const [formData, setFormData] = React.useState({
+        institution: '',
+        segment: 'Shark Tank',
+        teamName: '',
+        leadName: '',
+        leadEmail: '',
+        leadPhone: '',
+        member2Name: '',
+        member2Email: '',
+        member3Name: '',
+        member3Email: '',
+        trxId: ''
+      });
 
-      const handleLogin = (e) => {
+      const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+      };
+
+      const handleSubmit = async (e) => {
         e.preventDefault();
-        if (key === 'ECOBIZ2027' || key === 'BISC-EXEC-2027') {
-          setIsAuth(true);
-        } else {
-          alert('Invalid Security Passkey');
+        setLoading(true);
+        try {
+          const res = await fetch('https://formspree.io/f/mrppwnzq', {
+            method: 'POST',
+            headers: { 
+              'Content-Type': 'application/json', 
+              'Accept': 'application/json' 
+            },
+            body: JSON.stringify({ ...formData, participationMode: mode })
+          });
+          if (res.ok) {
+            setSubmitted(true);
+          } else {
+            alert('Submission failed. Please verify form entries and try again.');
+          }
+        } catch (err) {
+          alert('Network error. Please check your internet connection.');
+        } finally {
+          setLoading(false);
         }
       };
 
-      if (!isAuth) {
+      if (submitted) {
         return (
-          <div class="min-h-screen flex items-center justify-center p-4">
-            <div class="bg-[#111827] border border-[#00F0FF]/30 p-8 rounded-2xl max-w-md w-full text-center shadow-2xl">
-              <h1 class="text-2xl font-bold text-[#00F0FF] mb-2">BISC EcoBiz Command Center</h1>
-              <p class="text-slate-400 text-sm mb-6">Restricted Invite-Only Access Gate</p>
-              <form onSubmit={handleLogin} class="space-y-4">
-                <input 
-                  type="password" 
-                  placeholder="Enter Security Passkey" 
-                  value={key} 
-                  onChange={(e) => setKey(e.target.value)}
-                  class="w-full bg-[#090D16] border border-slate-700 rounded-lg px-4 py-3 text-center text-white focus:outline-none focus:border-[#00F0FF]"
-                />
-                <button type="submit" class="w-full bg-[#00F0FF] text-black font-semibold py-3 rounded-lg hover:bg-cyan-400 transition">
-                  Unlock Workspace
-                </button>
-              </form>
+          <div className="min-h-screen flex items-center justify-center p-6 text-center">
+            <div className="bg-[#111827] border border-[#00F0FF]/30 p-8 rounded-2xl max-w-lg w-full shadow-2xl space-y-4">
+              <div className="w-16 h-16 bg-[#00F0FF]/10 text-[#00F0FF] rounded-full flex items-center justify-center mx-auto text-2xl font-bold">✓</div>
+              <h1 className="text-3xl font-bold text-[#00F0FF]">Registration Confirmed!</h1>
+              <p className="text-slate-300 text-sm leading-relaxed">
+                Thank you for registering for <strong>BISC EcoBiz Summit I</strong>. Your submission has been received by the organizing board.
+              </p>
+              <button onClick={() => { setSubmitted(false); setFormData({ institution: '', segment: 'Shark Tank', teamName: '', leadName: '', leadEmail: '', leadPhone: '', member2Name: '', member2Email: '', member3Name: '', member3Email: '', trxId: '' }); }} className="w-full bg-[#00F0FF] text-black font-semibold py-3 rounded-xl hover:bg-cyan-400 transition">
+                Register Another Team / Participant
+              </button>
             </div>
           </div>
         );
       }
 
       return (
-        <div class="p-8 max-w-6xl mx-auto space-y-6">
-          <div class="flex justify-between items-center border-b border-slate-800 pb-4">
+        <div className="min-h-screen p-4 md:p-8 max-w-3xl mx-auto space-y-6">
+          <header className="text-center space-y-2 border-b border-slate-800 pb-6 pt-4">
+            <span className="inline-block bg-[#00F0FF]/10 text-[#00F0FF] text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider">Official Portal</span>
+            <h1 className="text-3xl md:text-4xl font-extrabold text-white">BISC EcoBiz Summit I</h1>
+            <p className="text-slate-400 text-sm max-w-md mx-auto">Select your segment, fill in delegate details, and submit your bKash / Nagad transaction ID.</p>
+          </header>
+
+          <form onSubmit={handleSubmit} className="bg-[#111827] border border-slate-800 p-6 md:p-8 rounded-2xl space-y-6 shadow-2xl">
             <div>
-              <h1 class="text-3xl font-bold text-[#00F0FF]">BISC EcoBiz Summit I — Executive Dashboard</h1>
-              <p class="text-slate-400 text-sm">Target: 150 Delegates | Budget: BDT 1.2M+</p>
+              <label className="block text-xs uppercase font-bold text-slate-400 mb-2">Participation Mode</label>
+              <div className="grid grid-cols-2 gap-3 bg-[#090D16] p-1.5 rounded-xl border border-slate-800">
+                <button 
+                  type="button" 
+                  onClick={() => setMode('team')} 
+                  className={`py-2.5 text-sm rounded-lg font-semibold transition ${mode === 'team' ? 'bg-[#00F0FF] text-black shadow-md' : 'text-slate-400 hover:text-white'}`}
+                >
+                  Team Entry (2–3 Members)
+                </button>
+                <button 
+                  type="button" 
+                  onClick={() => setMode('solo')} 
+                  className={`py-2.5 text-sm rounded-lg font-semibold transition ${mode === 'solo' ? 'bg-[#00F0FF] text-black shadow-md' : 'text-slate-400 hover:text-white'}`}
+                >
+                  Solo Entry
+                </button>
+              </div>
             </div>
-            <button onClick={() => setIsAuth(false)} class="px-4 py-2 border border-red-500/50 text-red-400 rounded-lg hover:bg-red-500/10">
-              Lock Session
+
+            <div>
+              <label className="block text-xs uppercase font-bold text-slate-400 mb-2">Competition Segment</label>
+              <select name="segment" value={formData.segment} onChange={handleChange} className="w-full bg-[#090D16] border border-slate-700 rounded-xl p-3 text-white focus:outline-none focus:border-[#00F0FF]">
+                <option value="Shark Tank">Shark Tank</option>
+                <option value="BISC Fiscal Frontier">BISC Fiscal Frontier</option>
+                <option value="Venture Capital Pitch">Venture Capital Pitch</option>
+                <option value="Corporate Strategy Case Crack">Corporate Strategy Case Crack</option>
+              </select>
+            </div>
+
+            {mode === 'team' && (
+              <div>
+                <label className="block text-xs uppercase font-bold text-slate-400 mb-2">Team Name</label>
+                <input required type="text" name="teamName" value={formData.teamName} onChange={handleChange} placeholder="e.g., The Alpha Strategists" className="w-full bg-[#090D16] border border-slate-700 rounded-xl p-3 text-white focus:outline-none focus:border-[#00F0FF]" />
+              </div>
+            )}
+
+            <div>
+              <label className="block text-xs uppercase font-bold text-slate-400 mb-2">School / Institution</label>
+              <input required type="text" name="institution" value={formData.institution} onChange={handleChange} placeholder="e.g., Bangladesh International School & College" className="w-full bg-[#090D16] border border-slate-700 rounded-xl p-3 text-white focus:outline-none focus:border-[#00F0FF]" />
+            </div>
+
+            <div className="space-y-4 border-t border-slate-800/80 pt-5">
+              <h3 className="text-sm font-bold text-[#00F0FF] uppercase tracking-wider">{mode === 'team' ? 'Team Leader / Delegate 1' : 'Delegate Details'}</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <input required type="text" name="leadName" value={formData.leadName} onChange={handleChange} placeholder="Full Name" className="bg-[#090D16] border border-slate-700 rounded-xl p-3 text-white focus:outline-none focus:border-[#00F0FF]" />
+                <input required type="email" name="leadEmail" value={formData.leadEmail} onChange={handleChange} placeholder="Email Address" className="bg-[#090D16] border border-slate-700 rounded-xl p-3 text-white focus:outline-none focus:border-[#00F0FF]" />
+                <input required type="tel" name="leadPhone" value={formData.leadPhone} onChange={handleChange} placeholder="Phone Number" className="bg-[#090D16] border border-slate-700 rounded-xl p-3 text-white focus:outline-none focus:border-[#00F0FF]" />
+              </div>
+            </div>
+
+            {mode === 'team' && (
+              <>
+                <div className="space-y-4 border-t border-slate-800/80 pt-5">
+                  <h3 className="text-sm font-bold text-[#00F0FF] uppercase tracking-wider">Delegate 2</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <input required type="text" name="member2Name" value={formData.member2Name} onChange={handleChange} placeholder="Full Name" className="bg-[#090D16] border border-slate-700 rounded-xl p-3 text-white focus:outline-none focus:border-[#00F0FF]" />
+                    <input required type="email" name="member2Email" value={formData.member2Email} onChange={handleChange} placeholder="Email Address" className="bg-[#090D16] border border-slate-700 rounded-xl p-3 text-white focus:outline-none focus:border-[#00F0FF]" />
+                  </div>
+                </div>
+
+                <div className="space-y-4 border-t border-slate-800/80 pt-5">
+                  <h3 className="text-sm font-bold text-[#00F0FF] uppercase tracking-wider">Delegate 3 (Optional)</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <input type="text" name="member3Name" value={formData.member3Name} onChange={handleChange} placeholder="Full Name" className="bg-[#090D16] border border-slate-700 rounded-xl p-3 text-white focus:outline-none focus:border-[#00F0FF]" />
+                    <input type="email" name="member3Email" value={formData.member3Email} onChange={handleChange} placeholder="Email Address" className="bg-[#090D16] border border-slate-700 rounded-xl p-3 text-white focus:outline-none focus:border-[#00F0FF]" />
+                  </div>
+                </div>
+              </>
+            )}
+
+            <div className="space-y-3 border-t border-slate-800/80 pt-5">
+              <label className="block text-xs uppercase font-bold text-slate-400">Payment Transaction ID (bKash / Nagad)</label>
+              <input required type="text" name="trxId" value={formData.trxId} onChange={handleChange} placeholder="e.g., TRX9876543210" className="w-full bg-[#090D16] border border-slate-700 rounded-xl p-3 text-white focus:outline-none focus:border-[#00F0FF]" />
+            </div>
+
+            <button type="submit" disabled={loading} className="w-full bg-[#00F0FF] text-black font-bold py-4 rounded-xl hover:bg-cyan-400 transition shadow-lg shadow-cyan-500/10">
+              {loading ? 'Submitting...' : 'Complete Registration'}
             </button>
-          </div>
-          <div class="bg-[#111827] border border-slate-800 p-6 rounded-xl">
-            <h2 class="text-xl font-semibold mb-2">Organizer Live Status</h2>
-            <p class="text-slate-300">Command Center connected and secure.</p>
-          </div>
+          </form>
         </div>
       );
     }
 
-    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    ReactDOM.createRoot(document.getElementById('root')).render(<RegistrationPortal />);
   </script>
 </body>
 </html>
