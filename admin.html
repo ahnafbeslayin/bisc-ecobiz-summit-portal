@@ -5,391 +5,426 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BISC EcoBiz Summit I — Organizer Command Center</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
 <body class="bg-[#090D16] text-white min-h-screen">
-  <div id="root"></div>
 
-  <script type="text/babel">
-    function CommandCenter() {
-      const [isAuth, setIsAuth] = React.useState(false);
-      const [key, setKey] = React.useState('');
-      const [userRole, setUserRole] = React.useState('');
-      const [activeTab, setActiveTab] = React.useState('roster');
-      const [searchQuery, setSearchQuery] = React.useState('');
-      const [segmentFilter, setSegmentFilter] = React.useState('All');
+  <!-- LOCK SCREEN -->
+  <div id="lockScreen" class="min-h-screen flex items-center justify-center p-4">
+    <div class="bg-[#111827] border border-[#00F0FF]/30 p-8 rounded-2xl max-w-md w-full text-center shadow-2xl space-y-6">
+      <div class="w-16 h-16 bg-[#00F0FF]/10 text-[#00F0FF] rounded-full flex items-center justify-center mx-auto text-2xl font-bold">🔒</div>
+      <div>
+        <h1 class="text-2xl font-bold text-[#00F0FF]">BISC EcoBiz Command Center</h1>
+        <p class="text-slate-400 text-xs mt-1">Restricted Organizing Board Portal</p>
+      </div>
+      <form id="loginForm" class="space-y-4">
+        <input 
+          id="passkeyInput"
+          type="password" 
+          placeholder="Enter Security Passkey" 
+          class="w-full bg-[#090D16] border border-slate-700 rounded-xl px-4 py-3 text-center text-white focus:outline-none focus:border-[#00F0FF]"
+          required
+        />
+        <button type="submit" class="w-full bg-[#00F0FF] text-black font-semibold py-3 rounded-xl hover:bg-cyan-400 transition shadow-lg shadow-cyan-500/10">
+          Authenticate Workspace
+        </button>
+      </form>
+      <div class="text-left text-xs text-slate-500 bg-[#090D16] p-3 rounded-lg border border-slate-800 space-y-1">
+        <p class="font-semibold text-slate-400">Pre-authorized Passkeys:</p>
+        <p>• General Secretary: <code class="text-[#00F0FF]">BISC-EXEC-2027</code></p>
+        <p>• Executive Board: <code class="text-[#00F0FF]">ECOBIZ2027</code></p>
+      </div>
+    </div>
+  </div>
 
-      const validKeys = {
-        'BISC-EXEC-2027': 'Master General Secretary',
-        'ECOBIZ2027': 'Executive Board',
-        'FACULTY-2027': 'Faculty Advisor',
-        'JUDGE-2027': 'Judge Panel'
-      };
-
-      const [delegates, setDelegates] = React.useState([
-        { id: 1, team: 'Alpha Capital', lead: 'Tanvir Ahmed', school: 'BISC Mohakhali', segment: 'Shark Tank', mode: 'Team', trx: 'TRX98711', paid: true },
-        { id: 2, team: 'Apex Strategy', lead: 'Nabila Islam', school: 'Scholastica', segment: 'BISC Fiscal Frontier', mode: 'Team', trx: 'TRX98722', paid: true },
-        { id: 3, team: 'N/A', lead: 'Zayan Chowdhury', school: 'Mastermind', segment: 'Venture Capital Pitch', mode: 'Solo', trx: 'TRX98733', paid: false },
-        { id: 4, team: 'EcoVentures', lead: 'Saima Khan', school: 'BISC Mohakhali', segment: 'Corporate Strategy Case Crack', mode: 'Team', trx: 'TRX98744', paid: true },
-        { id: 5, team: 'Matrix Economics', lead: 'Ayman Hasan', school: 'Sunbeams', segment: 'BISC Fiscal Frontier', mode: 'Team', trx: 'TRX98755', paid: false }
-      ]);
-
-      const [tasks, setTasks] = React.useState([
-        { id: 1, text: 'Confirm Hotel Ballroom Catering Contract', day: 'Day 3', done: true },
-        { id: 2, text: 'Print Delegate ID Badges & Lanyards', day: 'Day 1', done: false },
-        { id: 3, text: 'Brief Segment Judges on Scoring Rubrics', day: 'Day 2', done: true },
-        { id: 4, text: 'Test Stage Audio & Projector Setup', day: 'Day 3', done: false }
-      ]);
-
-      const [timer, setTimer] = React.useState(180);
-      const [timerRunning, setTimerRunning] = React.useState(false);
-      const [currentCrisis, setCurrentCrisis] = React.useState(null);
-
-      const crisisList = [
-        "Fuel Subsidy Shock: Global crude prices spike by 40%. Readjust national budget allocations within 90 seconds.",
-        "Hyperinflation Spike: Local currency devalues by 25% overnight. Address foreign debt servicing.",
-        "Supply Chain Disruption: Key port strikes freeze exports for 3 weeks. Re-route logistics infrastructure.",
-        "Banking Liquidity Crisis: Central bank raises interest rates to 15%. Formulate small-business relief package."
-      ];
-
-      React.useEffect(() => {
-        let interval = null;
-        if (timerRunning && timer > 0) {
-          interval = setInterval(() => setTimer(t => t - 1), 1000);
-        } else if (timer === 0) {
-          setTimerRunning(false);
-        }
-        return () => clearInterval(interval);
-      }, [timerRunning, timer]);
-
-      const handleLogin = (e) => {
-        e.preventDefault();
-        const cleanKey = key.trim();
-        if (validKeys[cleanKey]) {
-          setUserRole(validKeys[cleanKey]);
-          setIsAuth(true);
-        } else {
-          alert('Invalid Security Passkey');
-        }
-      };
-
-      const togglePayment = (id) => {
-        setDelegates(delegates.map(d => d.id === id ? { ...d, paid: !d.paid } : d));
-      };
-
-      const toggleTask = (id) => {
-        setTasks(tasks.map(t => t.id === id ? { ...t, done: !t.done } : t));
-      };
-
-      const exportCSV = () => {
-        const headers = "ID,Team Name,Lead Delegate,Institution,Segment,Mode,TRX ID,Payment Status\n";
-        const rows = delegates.map(d => `${d.id},"${d.team}","${d.lead}","${d.school}","${d.segment}",${d.mode},${d.trx},${d.paid ? 'Paid' : 'Pending'}`).join("\n");
-        const blob = new Blob([headers + rows], { type: 'text/csv' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'EcoBiz_Delegates_Roster.csv';
-        a.click();
-      };
-
-      const generateCrisis = () => {
-        const random = crisisList[Math.floor(Math.random() * crisisList.length)];
-        setCurrentCrisis(random);
-      };
-
-      if (!isAuth) {
-        return (
-          <div className="min-h-screen flex items-center justify-center p-4">
-            <div className="bg-[#111827] border border-[#00F0FF]/30 p-8 rounded-2xl max-w-md w-full text-center shadow-2xl space-y-6">
-              <div className="w-16 h-16 bg-[#00F0FF]/10 text-[#00F0FF] rounded-full flex items-center justify-center mx-auto text-2xl font-bold">🔒</div>
-              <div>
-                <h1 className="text-2xl font-bold text-[#00F0FF]">BISC EcoBiz Command Center</h1>
-                <p className="text-slate-400 text-xs mt-1">Restricted Organizing Board Portal</p>
-              </div>
-              <form onSubmit={handleLogin} className="space-y-4">
-                <input 
-                  type="password" 
-                  placeholder="Enter Security Passkey" 
-                  value={key} 
-                  onChange={(e) => setKey(e.target.value)}
-                  className="w-full bg-[#090D16] border border-slate-700 rounded-xl px-4 py-3 text-center text-white focus:outline-none focus:border-[#00F0FF]"
-                />
-                <button type="submit" className="w-full bg-[#00F0FF] text-black font-semibold py-3 rounded-xl hover:bg-cyan-400 transition shadow-lg shadow-cyan-500/10">
-                  Authenticate Workspace
-                </button>
-              </form>
-              <div className="text-left text-xs text-slate-500 bg-[#090D16] p-3 rounded-lg border border-slate-800 space-y-1">
-                <p className="font-semibold text-slate-400">Pre-authorized Passkeys:</p>
-                <p>• General Secretary: <code className="text-[#00F0FF]">BISC-EXEC-2027</code></p>
-                <p>• Executive Board: <code className="text-[#00F0FF]">ECOBIZ2027</code></p>
-              </div>
-            </div>
-          </div>
-        );
-      }
-
-      const filteredDelegates = delegates.filter(d => {
-        const matchesSearch = d.lead.toLowerCase().includes(searchQuery.toLowerCase()) || d.team.toLowerCase().includes(searchQuery.toLowerCase()) || d.school.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesSegment = segmentFilter === 'All' || d.segment === segmentFilter;
-        return matchesSearch && matchesSegment;
-      });
-
-      return (
-        <div className="min-h-screen p-4 md:p-8 max-w-7xl mx-auto space-y-6">
-          <header className="flex flex-col md:flex-row justify-between items-start md:items-center bg-[#111827] border border-slate-800 p-6 rounded-2xl gap-4">
-            <div>
-              <div className="flex items-center space-x-3">
-                <h1 className="text-2xl font-extrabold text-[#00F0FF]">BISC EcoBiz Command Center</h1>
-                <span className="bg-[#00F0FF]/10 text-[#00F0FF] text-xs font-semibold px-2.5 py-0.5 rounded-full">{userRole}</span>
-              </div>
-              <p className="text-slate-400 text-xs mt-1">BISC EcoBiz Summit I — Target: 150 Delegates | Budget: BDT 1,229,000</p>
-            </div>
-            <button onClick={() => setIsAuth(false)} className="px-4 py-2 border border-red-500/40 text-red-400 hover:bg-red-500/10 text-xs font-semibold rounded-lg transition">
-              Lock Session
-            </button>
-          </header>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-[#111827] border border-slate-800 p-4 rounded-xl">
-              <p className="text-slate-400 text-xs font-semibold uppercase">Total Delegates</p>
-              <p className="text-2xl font-bold text-white mt-1">{delegates.length} <span className="text-xs font-normal text-slate-500">/ 150 Target</span></p>
-            </div>
-            <div className="bg-[#111827] border border-slate-800 p-4 rounded-xl">
-              <p className="text-slate-400 text-xs font-semibold uppercase">Verified Payments</p>
-              <p className="text-2xl font-bold text-[#00F0FF] mt-1">{delegates.filter(d => d.paid).length}</p>
-            </div>
-            <div className="bg-[#111827] border border-slate-800 p-4 rounded-xl">
-              <p className="text-slate-400 text-xs font-semibold uppercase">Pending Verification</p>
-              <p className="text-2xl font-bold text-yellow-400 mt-1">{delegates.filter(d => !d.paid).length}</p>
-            </div>
-            <div className="bg-[#111827] border border-slate-800 p-4 rounded-xl">
-              <p className="text-slate-400 text-xs font-semibold uppercase">Active Segments</p>
-              <p className="text-2xl font-bold text-purple-400 mt-1">4</p>
-            </div>
-          </div>
-
-          <div className="flex border-b border-slate-800 space-x-2 overflow-x-auto">
-            {[
-              { id: 'roster', label: 'Delegate Roster' },
-              { id: 'scoreboard', label: 'Judging Scoreboard' },
-              { id: 'financials', label: 'Financial Ledger' },
-              { id: 'logistics', label: 'Logistics Roadmap' },
-              { id: 'crisis', label: 'Pitch & Crisis Sim' }
-            ].map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`px-4 py-2.5 text-sm font-semibold rounded-t-lg transition whitespace-nowrap ${activeTab === tab.id ? 'bg-[#111827] text-[#00F0FF] border-t-2 border-[#00F0FF]' : 'text-slate-400 hover:text-white'}`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-
-          {activeTab === 'roster' && (
-            <div className="bg-[#111827] border border-slate-800 rounded-2xl p-6 space-y-4">
-              <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4">
-                <div className="flex items-center space-x-3 flex-1">
-                  <input 
-                    type="text" 
-                    placeholder="Search delegate, team, or institution..." 
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="bg-[#090D16] border border-slate-700 rounded-xl px-4 py-2 text-sm w-full md:w-80 text-white focus:outline-none focus:border-[#00F0FF]"
-                  />
-                  <select 
-                    value={segmentFilter} 
-                    onChange={(e) => setSegmentFilter(e.target.value)}
-                    className="bg-[#090D16] border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-[#00F0FF]"
-                  >
-                    <option value="All">All Segments</option>
-                    <option value="Shark Tank">Shark Tank</option>
-                    <option value="BISC Fiscal Frontier">BISC Fiscal Frontier</option>
-                    <option value="Venture Capital Pitch">Venture Capital Pitch</option>
-                    <option value="Corporate Strategy Case Crack">Corporate Strategy Case Crack</option>
-                  </select>
-                </div>
-                <button onClick={exportCSV} className="bg-[#00F0FF]/10 text-[#00F0FF] border border-[#00F0FF]/40 px-4 py-2 rounded-xl text-sm font-semibold hover:bg-[#00F0FF]/20 transition">
-                  Export CSV
-                </button>
-              </div>
-
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm text-slate-300">
-                  <thead className="bg-[#090D16] text-xs uppercase text-slate-400">
-                    <tr>
-                      <th className="p-3">Team / Delegate</th>
-                      <th className="p-3">Institution</th>
-                      <th className="p-3">Segment</th>
-                      <th className="p-3">Mode</th>
-                      <th className="p-3">TRX ID</th>
-                      <th className="p-3">Status</th>
-                      <th className="p-3">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-800">
-                    {filteredDelegates.map((d) => (
-                      <tr key={d.id} className="hover:bg-slate-800/30">
-                        <td className="p-3 font-semibold text-white">{d.team !== 'N/A' ? d.team : d.lead} <span className="text-xs text-slate-400 block font-normal">{d.lead}</span></td>
-                        <td className="p-3">{d.school}</td>
-                        <td className="p-3"><span className="bg-slate-800 text-xs px-2 py-1 rounded-md">{d.segment}</span></td>
-                        <td className="p-3">{d.mode}</td>
-                        <td className="p-3 font-mono text-xs">{d.trx}</td>
-                        <td className="p-3">
-                          <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${d.paid ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/30'}`}>
-                            {d.paid ? 'Verified' : 'Pending'}
-                          </span>
-                        </td>
-                        <td className="p-3">
-                          <button onClick={() => togglePayment(d.id)} className="text-xs text-slate-400 hover:text-[#00F0FF] underline">
-                            Toggle Status
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'scoreboard' && (
-            <div className="bg-[#111827] border border-slate-800 rounded-2xl p-6 space-y-6">
-              <h2 className="text-lg font-bold text-white">Segment Scoreboard & Leaderboard</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-[#090D16] border border-slate-800 p-4 rounded-xl space-y-3">
-                  <h3 className="text-sm font-bold text-[#00F0FF]">Shark Tank — Top Ranked Teams</h3>
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center text-sm bg-slate-900 p-2.5 rounded-lg border border-slate-800">
-                      <span>1. Alpha Capital (BISC Mohakhali)</span>
-                      <span className="font-bold text-[#00F0FF]">94.5 / 100</span>
-                    </div>
-                    <div className="flex justify-between items-center text-sm bg-slate-900 p-2.5 rounded-lg border border-slate-800">
-                      <span>2. EcoVentures (Mastermind)</span>
-                      <span className="font-bold text-[#00F0FF]">89.0 / 100</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="bg-[#090D16] border border-slate-800 p-4 rounded-xl space-y-3">
-                  <h3 className="text-sm font-bold text-[#00F0FF]">BISC Fiscal Frontier Leaderboard</h3>
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center text-sm bg-slate-900 p-2.5 rounded-lg border border-slate-800">
-                      <span>1. Apex Strategy (Scholastica)</span>
-                      <span className="font-bold text-[#00F0FF]">92.0 / 100</span>
-                    </div>
-                    <div className="flex justify-between items-center text-sm bg-slate-900 p-2.5 rounded-lg border border-slate-800">
-                      <span>2. Matrix Economics (Sunbeams)</span>
-                      <span className="font-bold text-[#00F0FF]">86.5 / 100</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'financials' && (
-            <div className="bg-[#111827] border border-slate-800 rounded-2xl p-6 space-y-6">
-              <h2 className="text-lg font-bold text-white">Summit Financial Breakdown</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-3">
-                  <h3 className="text-sm font-bold text-emerald-400">Projected Revenue (BDT 1,229,000)</h3>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between bg-[#090D16] p-3 rounded-lg border border-slate-800">
-                      <span>Delegate Registration Fees</span>
-                      <span className="font-semibold text-white">BDT 300,000</span>
-                    </div>
-                    <div className="flex justify-between bg-[#090D16] p-3 rounded-lg border border-slate-800">
-                      <span>Title Sponsor Pitch</span>
-                      <span className="font-semibold text-white">BDT 500,000</span>
-                    </div>
-                    <div className="flex justify-between bg-[#090D16] p-3 rounded-lg border border-slate-800">
-                      <span>Gold & Silver Co-Sponsors</span>
-                      <span className="font-semibold text-white">BDT 429,000</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  <h3 className="text-sm font-bold text-red-400">Budget Allocations</h3>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between bg-[#090D16] p-3 rounded-lg border border-slate-800">
-                      <span>Hotel Ballroom Rental (Day 3 Gala)</span>
-                      <span className="font-semibold text-white">BDT 450,000</span>
-                    </div>
-                    <div className="flex justify-between bg-[#090D16] p-3 rounded-lg border border-slate-800">
-                      <span>Catering & Delegate Refreshments</span>
-                      <span className="font-semibold text-white">BDT 350,000</span>
-                    </div>
-                    <div className="flex justify-between bg-[#090D16] p-3 rounded-lg border border-slate-800">
-                      <span>Delegate Kits, Crests & Certificates</span>
-                      <span className="font-semibold text-white">BDT 200,000</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'logistics' && (
-            <div className="bg-[#111827] border border-slate-800 rounded-2xl p-6 space-y-4">
-              <h2 className="text-lg font-bold text-white">3-Day Summit Checklist</h2>
-              <div className="space-y-2">
-                {tasks.map(t => (
-                  <div key={t.id} onClick={() => toggleTask(t.id)} className="flex items-center justify-between bg-[#090D16] p-3.5 rounded-xl border border-slate-800 cursor-pointer hover:border-[#00F0FF]/40 transition">
-                    <div className="flex items-center space-x-3">
-                      <input type="checkbox" checked={t.done} readOnly className="w-4 h-4 accent-[#00F0FF]" />
-                      <span className={`text-sm ${t.done ? 'line-through text-slate-500' : 'text-slate-200'}`}>{t.text}</span>
-                    </div>
-                    <span className="text-xs bg-slate-800 text-slate-400 px-2.5 py-1 rounded-md">{t.day}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'crisis' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-[#111827] border border-slate-800 rounded-2xl p-6 space-y-4 text-center">
-                <h2 className="text-lg font-bold text-[#00F0FF]">Pitch Timer</h2>
-                <div className="text-5xl font-mono font-extrabold tracking-wider text-white bg-[#090D16] py-6 rounded-xl border border-slate-800">
-                  {Math.floor(timer / 60)}:{('0' + (timer % 60)).slice(-2)}
-                </div>
-                <div className="flex justify-center space-x-3">
-                  <button onClick={() => setTimerRunning(!timerRunning)} className="bg-[#00F0FF] text-black font-semibold px-6 py-2.5 rounded-xl text-sm">
-                    {timerRunning ? 'Pause' : 'Start'}
-                  </button>
-                  <button onClick={() => { setTimer(180); setTimerRunning(false); }} className="bg-slate-800 text-slate-300 px-4 py-2.5 rounded-xl text-sm">
-                    Reset 3m
-                  </button>
-                  <button onClick={() => { setTimer(120); setTimerRunning(false); }} className="bg-slate-800 text-slate-300 px-4 py-2.5 rounded-xl text-sm">
-                    Reset 2m Q&A
-                  </button>
-                </div>
-              </div>
-
-              <div className="bg-[#111827] border border-slate-800 rounded-2xl p-6 space-y-4">
-                <h2 className="text-lg font-bold text-red-400">Fiscal Frontier Crisis Generator</h2>
-                <p className="text-xs text-slate-400">Trigger live random crisis scenarios during delegate floor debate.</p>
-                
-                {currentCrisis && (
-                  <div className="bg-red-500/10 border border-red-500/30 p-4 rounded-xl text-red-300 text-sm leading-relaxed">
-                    <strong>CRISIS BRIEF:</strong> {currentCrisis}
-                  </div>
-                )}
-
-                <button onClick={generateCrisis} className="w-full bg-red-500/20 text-red-400 border border-red-500/40 font-semibold py-3 rounded-xl text-sm hover:bg-red-500/30 transition">
-                  Generate Random Crisis
-                </button>
-              </div>
-            </div>
-          )}
+  <!-- MAIN DASHBOARD -->
+  <div id="dashboard" class="hidden min-h-screen p-4 md:p-8 max-w-7xl mx-auto space-y-6">
+    <!-- Header -->
+    <header class="flex flex-col md:flex-row justify-between items-start md:items-center bg-[#111827] border border-slate-800 p-6 rounded-2xl gap-4">
+      <div>
+        <div class="flex items-center space-x-3">
+          <h1 class="text-2xl font-extrabold text-[#00F0FF]">BISC EcoBiz Command Center</h1>
+          <span id="roleBadge" class="bg-[#00F0FF]/10 text-[#00F0FF] text-xs font-semibold px-2.5 py-0.5 rounded-full">Executive Board</span>
         </div>
-      );
+        <p class="text-slate-400 text-xs mt-1">BISC EcoBiz Summit I — Target: 150 Delegates | Budget: BDT 1,229,000</p>
+      </div>
+      <button id="lockBtn" class="px-4 py-2 border border-red-500/40 text-red-400 hover:bg-red-500/10 text-xs font-semibold rounded-lg transition">
+        Lock Session
+      </button>
+    </header>
+
+    <!-- Metrics -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="bg-[#111827] border border-slate-800 p-4 rounded-xl">
+        <p class="text-slate-400 text-xs font-semibold uppercase">Total Delegates</p>
+        <p class="text-2xl font-bold text-white mt-1" id="statTotal">5 <span class="text-xs font-normal text-slate-500">/ 150 Target</span></p>
+      </div>
+      <div class="bg-[#111827] border border-slate-800 p-4 rounded-xl">
+        <p class="text-slate-400 text-xs font-semibold uppercase">Verified Payments</p>
+        <p class="text-2xl font-bold text-[#00F0FF] mt-1" id="statVerified">3</p>
+      </div>
+      <div class="bg-[#111827] border border-slate-800 p-4 rounded-xl">
+        <p class="text-slate-400 text-xs font-semibold uppercase">Pending Verification</p>
+        <p class="text-2xl font-bold text-yellow-400 mt-1" id="statPending">2</p>
+      </div>
+      <div class="bg-[#111827] border border-slate-800 p-4 rounded-xl">
+        <p class="text-slate-400 text-xs font-semibold uppercase">Active Segments</p>
+        <p class="text-2xl font-bold text-purple-400 mt-1">4</p>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="flex border-b border-slate-800 space-x-2 overflow-x-auto">
+      <button onclick="switchTab('roster')" id="tab-roster" class="tab-btn px-4 py-2.5 text-sm font-semibold rounded-t-lg transition whitespace-nowrap bg-[#111827] text-[#00F0FF] border-t-2 border-[#00F0FF]">Delegate Roster</button>
+      <button onclick="switchTab('scoreboard')" id="tab-scoreboard" class="tab-btn px-4 py-2.5 text-sm font-semibold rounded-t-lg transition whitespace-nowrap text-slate-400 hover:text-white">Judging Scoreboard</button>
+      <button onclick="switchTab('financials')" id="tab-financials" class="tab-btn px-4 py-2.5 text-sm font-semibold rounded-t-lg transition whitespace-nowrap text-slate-400 hover:text-white">Financial Ledger</button>
+      <button onclick="switchTab('logistics')" id="tab-logistics" class="tab-btn px-4 py-2.5 text-sm font-semibold rounded-t-lg transition whitespace-nowrap text-slate-400 hover:text-white">Logistics Roadmap</button>
+      <button onclick="switchTab('crisis')" id="tab-crisis" class="tab-btn px-4 py-2.5 text-sm font-semibold rounded-t-lg transition whitespace-nowrap text-slate-400 hover:text-white">Pitch & Crisis Sim</button>
+    </div>
+
+    <!-- TAB 1: ROSTER -->
+    <div id="content-roster" class="tab-content bg-[#111827] border border-slate-800 rounded-2xl p-6 space-y-4">
+      <div class="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4">
+        <div class="flex items-center space-x-3 flex-1">
+          <input 
+            type="text" 
+            id="searchInput"
+            placeholder="Search delegate, team, or institution..." 
+            oninput="renderRoster()"
+            class="bg-[#090D16] border border-slate-700 rounded-xl px-4 py-2 text-sm w-full md:w-80 text-white focus:outline-none focus:border-[#00F0FF]"
+          />
+          <select 
+            id="segmentSelect" 
+            onchange="renderRoster()"
+            class="bg-[#090D16] border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-[#00F0FF]"
+          >
+            <option value="All">All Segments</option>
+            <option value="Shark Tank">Shark Tank</option>
+            <option value="BISC Fiscal Frontier">BISC Fiscal Frontier</option>
+            <option value="Venture Capital Pitch">Venture Capital Pitch</option>
+            <option value="Corporate Strategy Case Crack">Corporate Strategy Case Crack</option>
+          </select>
+        </div>
+        <button onclick="exportCSV()" class="bg-[#00F0FF]/10 text-[#00F0FF] border border-[#00F0FF]/40 px-4 py-2 rounded-xl text-sm font-semibold hover:bg-[#00F0FF]/20 transition">
+          Export CSV
+        </button>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm text-slate-300">
+          <thead class="bg-[#090D16] text-xs uppercase text-slate-400">
+            <tr>
+              <th class="p-3">Team / Delegate</th>
+              <th class="p-3">Institution</th>
+              <th class="p-3">Segment</th>
+              <th class="p-3">Mode</th>
+              <th class="p-3">TRX ID</th>
+              <th class="p-3">Status</th>
+              <th class="p-3">Action</th>
+            </tr>
+          </thead>
+          <tbody id="rosterTableBody" class="divide-y divide-slate-800"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 2: SCOREBOARD -->
+    <div id="content-scoreboard" class="tab-content hidden bg-[#111827] border border-slate-800 rounded-2xl p-6 space-y-6">
+      <h2 class="text-lg font-bold text-white">Segment Scoreboard & Leaderboard</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-[#090D16] border border-slate-800 p-4 rounded-xl space-y-3">
+          <h3 class="text-sm font-bold text-[#00F0FF]">Shark Tank — Top Ranked Teams</h3>
+          <div class="space-y-2">
+            <div class="flex justify-between items-center text-sm bg-slate-900 p-2.5 rounded-lg border border-slate-800">
+              <span>1. Alpha Capital (BISC Mohakhali)</span>
+              <span class="font-bold text-[#00F0FF]">94.5 / 100</span>
+            </div>
+            <div class="flex justify-between items-center text-sm bg-slate-900 p-2.5 rounded-lg border border-slate-800">
+              <span>2. EcoVentures (Mastermind)</span>
+              <span class="font-bold text-[#00F0FF]">89.0 / 100</span>
+            </div>
+          </div>
+        </div>
+        <div class="bg-[#090D16] border border-slate-800 p-4 rounded-xl space-y-3">
+          <h3 class="text-sm font-bold text-[#00F0FF]">BISC Fiscal Frontier Leaderboard</h3>
+          <div class="space-y-2">
+            <div class="flex justify-between items-center text-sm bg-slate-900 p-2.5 rounded-lg border border-slate-800">
+              <span>1. Apex Strategy (Scholastica)</span>
+              <span class="font-bold text-[#00F0FF]">92.0 / 100</span>
+            </div>
+            <div class="flex justify-between items-center text-sm bg-slate-900 p-2.5 rounded-lg border border-slate-800">
+              <span>2. Matrix Economics (Sunbeams)</span>
+              <span class="font-bold text-[#00F0FF]">86.5 / 100</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: FINANCIALS -->
+    <div id="content-financials" class="tab-content hidden bg-[#111827] border border-slate-800 rounded-2xl p-6 space-y-6">
+      <h2 class="text-lg font-bold text-white">Summit Financial Breakdown</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="space-y-3">
+          <h3 class="text-sm font-bold text-emerald-400">Projected Revenue (BDT 1,229,000)</h3>
+          <div class="space-y-2 text-sm">
+            <div class="flex justify-between bg-[#090D16] p-3 rounded-lg border border-slate-800">
+              <span>Delegate Registration Fees</span>
+              <span class="font-semibold text-white">BDT 300,000</span>
+            </div>
+            <div class="flex justify-between bg-[#090D16] p-3 rounded-lg border border-slate-800">
+              <span>Title Sponsor Pitch</span>
+              <span class="font-semibold text-white">BDT 500,000</span>
+            </div>
+            <div class="flex justify-between bg-[#090D16] p-3 rounded-lg border border-slate-800">
+              <span>Gold & Silver Co-Sponsors</span>
+              <span class="font-semibold text-white">BDT 429,000</span>
+            </div>
+          </div>
+        </div>
+        <div class="space-y-3">
+          <h3 class="text-sm font-bold text-red-400">Budget Allocations</h3>
+          <div class="space-y-2 text-sm">
+            <div class="flex justify-between bg-[#090D16] p-3 rounded-lg border border-slate-800">
+              <span>Hotel Ballroom Rental (Day 3 Gala)</span>
+              <span class="font-semibold text-white">BDT 450,000</span>
+            </div>
+            <div class="flex justify-between bg-[#090D16] p-3 rounded-lg border border-slate-800">
+              <span>Catering & Delegate Refreshments</span>
+              <span class="font-semibold text-white">BDT 350,000</span>
+            </div>
+            <div class="flex justify-between bg-[#090D16] p-3 rounded-lg border border-slate-800">
+              <span>Delegate Kits, Crests & Certificates</span>
+              <span class="font-semibold text-white">BDT 200,000</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: LOGISTICS -->
+    <div id="content-logistics" class="tab-content hidden bg-[#111827] border border-slate-800 rounded-2xl p-6 space-y-4">
+      <h2 class="text-lg font-bold text-white">3-Day Summit Checklist</h2>
+      <div id="logisticsList" class="space-y-2"></div>
+    </div>
+
+    <!-- TAB 5: CRISIS SIM -->
+    <div id="content-crisis" class="tab-content hidden grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="bg-[#111827] border border-slate-800 rounded-2xl p-6 space-y-4 text-center">
+        <h2 class="text-lg font-bold text-[#00F0FF]">Pitch Timer</h2>
+        <div id="timerDisplay" class="text-5xl font-mono font-extrabold tracking-wider text-white bg-[#090D16] py-6 rounded-xl border border-slate-800">
+          03:00
+        </div>
+        <div class="flex justify-center space-x-3">
+          <button id="timerToggleBtn" onclick="toggleTimer()" class="bg-[#00F0FF] text-black font-semibold px-6 py-2.5 rounded-xl text-sm">
+            Start
+          </button>
+          <button onclick="resetTimer(180)" class="bg-slate-800 text-slate-300 px-4 py-2.5 rounded-xl text-sm">
+            Reset 3m
+          </button>
+          <button onclick="resetTimer(120)" class="bg-slate-800 text-slate-300 px-4 py-2.5 rounded-xl text-sm">
+            Reset 2m Q&A
+          </button>
+        </div>
+      </div>
+
+      <div class="bg-[#111827] border border-slate-800 rounded-2xl p-6 space-y-4">
+        <h2 class="text-lg font-bold text-red-400">Fiscal Frontier Crisis Generator</h2>
+        <p class="text-xs text-slate-400">Trigger live random crisis scenarios during delegate floor debate.</p>
+        
+        <div id="crisisBox" class="hidden bg-red-500/10 border border-red-500/30 p-4 rounded-xl text-red-300 text-sm leading-relaxed">
+          <strong>CRISIS BRIEF:</strong> <span id="crisisText"></span>
+        </div>
+
+        <button onclick="generateCrisis()" class="w-full bg-red-500/20 text-red-400 border border-red-500/40 font-semibold py-3 rounded-xl text-sm hover:bg-red-500/30 transition">
+          Generate Random Crisis
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const validKeys = {
+      'BISC-EXEC-2027': 'Master General Secretary',
+      'ECOBIZ2027': 'Executive Board',
+      'FACULTY-2027': 'Faculty Advisor',
+      'JUDGE-2027': 'Judge Panel'
+    };
+
+    let delegates = [
+      { id: 1, team: 'Alpha Capital', lead: 'Tanvir Ahmed', school: 'BISC Mohakhali', segment: 'Shark Tank', mode: 'Team', trx: 'TRX98711', paid: true },
+      { id: 2, team: 'Apex Strategy', lead: 'Nabila Islam', school: 'Scholastica', segment: 'BISC Fiscal Frontier', mode: 'Team', trx: 'TRX98722', paid: true },
+      { id: 3, team: 'N/A', lead: 'Zayan Chowdhury', school: 'Mastermind', segment: 'Venture Capital Pitch', mode: 'Solo', trx: 'TRX98733', paid: false },
+      { id: 4, team: 'EcoVentures', lead: 'Saima Khan', school: 'BISC Mohakhali', segment: 'Corporate Strategy Case Crack', mode: 'Team', trx: 'TRX98744', paid: true },
+      { id: 5, team: 'Matrix Economics', lead: 'Ayman Hasan', school: 'Sunbeams', segment: 'BISC Fiscal Frontier', mode: 'Team', trx: 'TRX98755', paid: false }
+    ];
+
+    let tasks = [
+      { id: 1, text: 'Confirm Hotel Ballroom Catering Contract', day: 'Day 3', done: true },
+      { id: 2, text: 'Print Delegate ID Badges & Lanyards', day: 'Day 1', done: false },
+      { id: 3, text: 'Brief Segment Judges on Scoring Rubrics', day: 'Day 2', done: true },
+      { id: 4, text: 'Test Stage Audio & Projector Setup', day: 'Day 3', done: false }
+    ];
+
+    let timer = 180;
+    let timerRunning = false;
+    let timerInterval = null;
+
+    const crisisList = [
+      "Fuel Subsidy Shock: Global crude prices spike by 40%. Readjust national budget allocations within 90 seconds.",
+      "Hyperinflation Spike: Local currency devalues by 25% overnight. Address foreign debt servicing.",
+      "Supply Chain Disruption: Key port strikes freeze exports for 3 weeks. Re-route logistics infrastructure.",
+      "Banking Liquidity Crisis: Central bank raises interest rates to 15%. Formulate small-business relief package."
+    ];
+
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const input = document.getElementById('passkeyInput').value.trim();
+      if (validKeys[input]) {
+        document.getElementById('roleBadge').textContent = validKeys[input];
+        document.getElementById('lockScreen').classList.add('hidden');
+        document.getElementById('dashboard').classList.remove('hidden');
+        updateMetrics();
+        renderRoster();
+        renderLogistics();
+      } else {
+        alert('Invalid Security Passkey');
+      }
+    });
+
+    document.getElementById('lockBtn').addEventListener('click', function() {
+      document.getElementById('dashboard').classList.add('hidden');
+      document.getElementById('lockScreen').classList.remove('hidden');
+      document.getElementById('passkeyInput').value = '';
+    });
+
+    function updateMetrics() {
+      document.getElementById('statTotal').innerHTML = delegates.length + ' <span class="text-xs font-normal text-slate-500">/ 150 Target</span>';
+      document.getElementById('statVerified').textContent = delegates.filter(d => d.paid).length;
+      document.getElementById('statPending').textContent = delegates.filter(d => !d.paid).length;
     }
 
-    const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(<CommandCenter />);
+    function renderRoster() {
+      const query = document.getElementById('searchInput').value.toLowerCase();
+      const seg = document.getElementById('segmentSelect').value;
+      const tbody = document.getElementById('rosterTableBody');
+
+      const filtered = delegates.filter(d => {
+        const matchesSearch = d.lead.toLowerCase().includes(query) || d.team.toLowerCase().includes(query) || d.school.toLowerCase().includes(query);
+        const matchesSeg = seg === 'All' || d.segment === seg;
+        return matchesSearch && matchesSeg;
+      });
+
+      tbody.innerHTML = filtered.map(d => `
+        <tr class="hover:bg-slate-800/30">
+          <td class="p-3 font-semibold text-white">${d.team !== 'N/A' ? d.team : d.lead} <span class="text-xs text-slate-400 block font-normal">${d.lead}</span></td>
+          <td class="p-3">${d.school}</td>
+          <td class="p-3"><span class="bg-slate-800 text-xs px-2 py-1 rounded-md">${d.segment}</span></td>
+          <td class="p-3">${d.mode}</td>
+          <td class="p-3 font-mono text-xs">${d.trx}</td>
+          <td class="p-3">
+            <span class="text-xs px-2.5 py-1 rounded-full font-semibold ${d.paid ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/30'}">
+              ${d.paid ? 'Verified' : 'Pending'}
+            </span>
+          </td>
+          <td class="p-3">
+            <button onclick="togglePayment(${d.id})" class="text-xs text-slate-400 hover:text-[#00F0FF] underline">
+              Toggle Status
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function togglePayment(id) {
+      delegates = delegates.map(d => d.id === id ? { ...d, paid: !d.paid } : d);
+      updateMetrics();
+      renderRoster();
+    }
+
+    function exportCSV() {
+      const headers = "ID,Team Name,Lead Delegate,Institution,Segment,Mode,TRX ID,Payment Status\n";
+      const rows = delegates.map(d => `${d.id},"${d.team}","${d.lead}","${d.school}","${d.segment}",${d.mode},${d.trx},${d.paid ? 'Paid' : 'Pending'}`).join("\n");
+      const blob = new Blob([headers + rows], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'EcoBiz_Delegates_Roster.csv';
+      a.click();
+    }
+
+    function renderLogistics() {
+      const list = document.getElementById('logisticsList');
+      list.innerHTML = tasks.map(t => `
+        <div onclick="toggleTask(${t.id})" class="flex items-center justify-between bg-[#090D16] p-3.5 rounded-xl border border-slate-800 cursor-pointer hover:border-[#00F0FF]/40 transition">
+          <div class="flex items-center space-x-3">
+            <input type="checkbox" ${t.done ? 'checked' : ''} readOnly class="w-4 h-4 accent-[#00F0FF]" />
+            <span class="text-sm ${t.done ? 'line-through text-slate-500' : 'text-slate-200'}">${t.text}</span>
+          </div>
+          <span class="text-xs bg-slate-800 text-slate-400 px-2.5 py-1 rounded-md">${t.day}</span>
+        </div>
+      `).join('');
+    }
+
+    function toggleTask(id) {
+      tasks = tasks.map(t => t.id === id ? { ...t, done: !t.done } : t);
+      renderLogistics();
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(el => {
+        el.classList.remove('bg-[#111827]', 'text-[#00F0FF]', 'border-t-2', 'border-[#00F0FF]');
+        el.classList.add('text-slate-400');
+      });
+
+      document.getElementById('content-' + tabId).classList.remove('hidden');
+      const activeBtn = document.getElementById('tab-' + tabId);
+      activeBtn.classList.remove('text-slate-400');
+      activeBtn.classList.add('bg-[#111827]', 'text-[#00F0FF]', 'border-t-2', 'border-[#00F0FF]');
+    }
+
+    function updateTimerDisplay() {
+      const m = Math.floor(timer / 60);
+      const s = timer % 60;
+      document.getElementById('timerDisplay').textContent = 
+        (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+    }
+
+    function toggleTimer() {
+      const btn = document.getElementById('timerToggleBtn');
+      if (timerRunning) {
+        clearInterval(timerInterval);
+        timerRunning = false;
+        btn.textContent = 'Start';
+      } else {
+        timerRunning = true;
+        btn.textContent = 'Pause';
+        timerInterval = setInterval(() => {
+          if (timer > 0) {
+            timer--;
+            updateTimerDisplay();
+          } else {
+            clearInterval(timerInterval);
+            timerRunning = false;
+            btn.textContent = 'Start';
+          }
+        }, 1000);
+      }
+    }
+
+    function resetTimer(sec) {
+      clearInterval(timerInterval);
+      timerRunning = false;
+      timer = sec;
+      document.getElementById('timerToggleBtn').textContent = 'Start';
+      updateTimerDisplay();
+    }
+
+    function generateCrisis() {
+      const random = crisisList[Math.floor(Math.random() * crisisList.length)];
+      document.getElementById('crisisText').textContent = random;
+      document.getElementById('crisisBox').classList.remove('hidden');
+    }
   </script>
 </body>
 </html>
