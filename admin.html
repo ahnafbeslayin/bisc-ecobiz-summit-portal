@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BISC EcoBiz Summit I — Organizer Command Center</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body class="bg-[#090D16] text-white min-h-screen">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    function CommandCenter() {
+      const [isAuth, setIsAuth] = React.useState(false);
+      const [key, setKey] = React.useState('');
+      const [userRole, setUserRole] = React.useState('');
+      const [activeTab, setActiveTab] = React.useState('roster');
+      const [searchQuery, setSearchQuery] = React.useState('');
+      const [segmentFilter, setSegmentFilter] = React.useState('All');
+
+      // Default Passkeys
+      const validKeys = {
+        'BISC-EXEC-2027': 'Master General Secretary',
+        'ECOBIZ2027': 'Executive Board',
+        'FACULTY-2027': 'Faculty Advisor',
+        'JUDGE-2027': 'Judge Panel'
+      };
+
+      // Initial Data
+      const [delegates, setDelegates] = React.useState([
+        { id: 1, team: 'Alpha Capital', lead: 'Tanvir Ahmed', school: 'BISC Mohakhali', segment: 'Shark Tank', mode: 'Team', trx: 'TRX98711', paid: true },
+        { id: 2, team: 'Apex Strategy', lead: 'Nabila Islam', school: 'Scholastica', segment: 'BISC Fiscal Frontier', mode: 'Team', trx: 'TRX98722', paid: true },
+        { id: 3, team: 'N/A', lead: 'Zayan Chowdhury', school: 'Mastermind', segment: 'Venture Capital Pitch', mode: 'Solo', trx: 'TRX98733', paid: false },
+        { id: 4, team: 'EcoVentures', lead: 'Saima Khan', school: 'BISC Mohakhali', segment: 'Corporate Strategy Case Crack', mode: 'Team', trx: 'TRX98744', paid: true },
+        { id: 5, team: 'Matrix Economics', lead: 'Ayman Hasan', school: 'Sunbeams', segment: 'BISC Fiscal Frontier', mode: 'Team', trx: 'TRX98755', paid: false }
+      ]);
+
+      const [tasks, setTasks] = React.useState([
+        { id: 1, text: 'Confirm Hotel Ballroom Catering Contract', day: 'Day 3', done: true },
+        { id: 2, text: 'Print Delegate ID Badges & Lanyards', day: 'Day 1', done: false },
+        { id: 3, text: 'Brief Segment Judges on Scoring Rubrics', day: 'Day 2', done: true },
+        { id: 4, text: 'Test Stage Audio & Projector Setup', day: 'Day 3', done: false }
+      ]);
+
+      const [timer, setTimer] = React.useState(180);
+      const [timerRunning, setTimerRunning] = React.useState(false);
+      const [currentCrisis, setCurrentCrisis] = React.useState(null);
+
+      const crisisList = [
+        "Fuel Subsidy Shock: Global crude prices spike by 40%. Readjust national budget allocations within 90 seconds.",
+        "Hyperinflation Spike: Local currency devalues by 25% overnight. Address foreign debt servicing.",
+        "Supply Chain Disruption: Key port strikes freeze exports for 3 weeks. Re-route logistics infrastructure.",
+        "Banking Liquidity Crisis: Central bank raises interest rates to 15%. Formulate small-business relief package."
+      ];
+
+      // Timer Effect
+      React.useEffect(() => {
+        let interval = null;
+        if (timerRunning && timer > 0) {
+          interval = setInterval(() => setTimer(t => t - 1), 1000);
+        } else if (timer === 0) {
+          setTimerRunning(false);
+        }
+        return () => clearInterval(interval);
+      }, [timerRunning, timer]);
+
+      const handleLogin = (e) => {
+        e.preventDefault();
+        const cleanKey = key.trim();
+        if (validKeys[cleanKey]) {
+          setUserRole(validKeys[cleanKey]);
+          setIsAuth(true);
+        } else {
+          alert('Invalid Security Passkey');
+        }
+      };
+
+      const togglePayment = (id) => {
+        setDelegates(delegates.map(d => d.id === id ? { ...d, paid: !d.paid } : d));
+      };
+
+      const toggleTask = (id) => {
+        setTasks(tasks.map(t => t.id === id ? { ...t, done: !t.done } : t));
+      };
+
+      const exportCSV = () => {
+        const headers = "ID,Team Name,Lead Delegate,Institution,Segment,Mode,TRX ID,Payment Status\n";
+        const rows = delegates.map(d => `${d.id},"${d.team}","${d.lead}","${d.school}","${d.segment}",${d.mode},${d.trx},${d.paid ? 'Paid' : 'Pending'}`).join("\n");
+        const blob = new Blob([headers + rows], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'EcoBiz_Delegates_Roster.csv';
+        a.click();
+      };
+
+      const generateCrisis = () => {
+        const random = crisisList[Math.floor(Math.random() * crisisList.length)];
+        setCurrentCrisis(random);
+      };
+
+      if (!isAuth) {
+        return (
+          <div className="min-h-screen flex items-center justify-center p-4">
+            <div className="bg-[#111827] border border-[#00F0FF]/30 p-8 rounded-2xl max-w-md w-full text-center shadow-2xl space-y-6">
+              <div className="w-16 h-16 bg-[#00F0FF]/10 text-[#00F0FF] rounded-full flex items-center justify-center mx-auto text-2xl font-bold">🔒</div>
+              <div>
+                <h1 className="text-2xl font-bold text-[#00F0FF]">BISC EcoBiz Command Center</h1>
+                <p className="text-slate-400 text-xs mt-1">Restricted Organizing Board Portal</p>
+              </div>
+              <form onSubmit={handleLogin} className="space-y-4">
+                <input 
+                  type="password" 
+                  placeholder="Enter Security Passkey" 
+                  value={key} 
+                  onChange={(e) => setKey(e.target.value)}
+                  className="w-full bg-[#090D16] border border-slate-700 rounded-xl px-4 py-3 text-center text-white focus:outline-none focus:border-[#00F0FF]"
+                />
+                <button type="submit" className="w-full bg-[#00F0FF] text-black font-semibold py-3 rounded-xl hover:bg-cyan-400 transition shadow-lg shadow-cyan-500/10">
+                  Authenticate Workspace
+                </button>
+              </form>
+              <div className="text-left text-xs text-slate-500 bg-[#090D16] p-3 rounded-lg border border-slate-800 space-y-1">
+                <p className="font-semibold text-slate-400">Pre-authorized Passkeys:</p>
+                <p>• General Secretary: <code className="text-[#00F0FF]">BISC-EXEC-2027</code></p>
+                <p>• Executive Board: <code className="text-[#00F0FF]">ECOBIZ2027</code></p>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      const filteredDelegates = delegates.filter(d => {
+        const matchesSearch = d.lead.toLowerCase().includes(searchQuery.toLowerCase()) || d.team.toLowerCase().includes(search
